@@ -14,12 +14,6 @@ using System.Reflection.Metadata;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-
-
-
-
 
 namespace HospitalAutomation.Service.Services
 {
@@ -48,20 +42,26 @@ namespace HospitalAutomation.Service.Services
 
             try
             {
+               
+                var usernameParam = new SqlParameter("@Username", user.Username);
+
+               
                 var existingUser = _context.Users
-                    .FromSqlRaw("EXEC Pr_Get_User_By_Username @Username",
-                        new SqlParameter("@Username", user.Username))
-                    .AsEnumerable()
+                    .FromSqlRaw("EXEC Pr_Get_User_By_Username @Username", usernameParam)
+                    .AsEnumerable() // EF Core'dan normal C# enumerable'a geçiş
                     .FirstOrDefault();
 
+               
                 if (existingUser == null)
                     return ResponseGeneric<string>.Error("Kullanıcı adı veya şifre yanlış.");
 
+               
                 bool isPasswordValid = BCrypt.Net.BCrypt.Verify(user.Password, existingUser.Password);
                 if (!isPasswordValid)
                     return ResponseGeneric<string>.Error("Kullanıcı adı veya şifre yanlış.");
 
                 var generatedToken = GenerateJwtToken(existingUser);
+
                 return ResponseGeneric<string>.Success(generatedToken, "Giriş başarılı.");
             }
             catch (Exception ex)
@@ -69,6 +69,8 @@ namespace HospitalAutomation.Service.Services
                 return ResponseGeneric<string>.Error("Giriş sırasında hata oluştu: " + ex.Message);
             }
         }
+
+
 
 
         public ResponseGeneric<bool> Register(UserRegisterDto userDto)
@@ -133,6 +135,10 @@ namespace HospitalAutomation.Service.Services
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, user.Role)
             };
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                claims.Add(new Claim(ClaimTypes.Email, user.Email));
+            }
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var token = new JwtSecurityToken(
@@ -146,17 +152,28 @@ namespace HospitalAutomation.Service.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        public ResponseGeneric<bool> UpdateUserRole(string username, string newRole)
+        public ResponseGeneric<bool> UpdateUserRole(string username, string role)
         {
-            var user = _userRepository.Get(u => u.Username == username);
-            if (user == null)
-                return ResponseGeneric<bool>.Error("Kullanıcı bulunamadı.");
+            try
+            {
+                var sql = "EXEC Pr_Update_User_Role @Username, @Role";
 
-            user.Role = newRole;
-            _userRepository.Update(user); 
+                var parameters = new[]
+                {
+            new SqlParameter("@Username", username),
+            new SqlParameter("@Role", role)
+        };
 
-            return ResponseGeneric<bool>.Success(true, $"{username} rolü '{newRole}' olarak güncellendi.");
+                _context.Database.ExecuteSqlRaw(sql, parameters);
+
+                return ResponseGeneric<bool>.Success(true, "Rol güncellendi.");
+            }
+            catch (Exception ex)
+            {
+                return ResponseGeneric<bool>.Error("Hata oluştu: " + ex.Message);
+            }
         }
+
 
     }
 }

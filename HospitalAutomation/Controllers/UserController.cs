@@ -31,14 +31,23 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
+
+        [Authorize(Roles = "Admin")]
         [HttpPost("UpdateUserRole")]
-        public IActionResult UpdateRole(string username, string role)
+        public IActionResult UpdateRole([FromQuery] string username, [FromQuery] string role)
         {
-            var result = _userService.UpdateUserRole(username, role);
-            if (!result.IsSuccess)
-                return BadRequest(result.Message);
-            return Ok(result);
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(role))
+                return BadRequest("Kullanıcı adı ve rol boş olamaz.");
+
+            var response = _userService.UpdateUserRole(username, role);
+
+            if (!response.IsSuccess)
+                return BadRequest(response.Message);
+
+            return Ok(response);
         }
+
+
 
 
 
