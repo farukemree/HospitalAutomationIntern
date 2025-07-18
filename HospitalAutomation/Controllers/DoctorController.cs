@@ -16,7 +16,7 @@ namespace HospitalAutomation.API.Controllers
         {
             _doctorService = doctorService;
         }
-        [Authorize(Roles = "Admin")]
+        //  [Authorize(Roles = "Admin")]
         [HttpGet("GetAllDoctors")]
         public IActionResult GetAllDoctors()
         {
@@ -26,7 +26,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [Authorize(Roles = "Admin,Doctor")]
+        //  [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("GetDoctorById/{id:int}")]
         public IActionResult GetDoctorById(int id)
         {
@@ -36,7 +36,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpPost("AddDoctor")]
         public IActionResult AddDoctor([FromBody] DoctorDto doctorDto)
         {
@@ -49,7 +49,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [Authorize(Roles = "Admin")]
+        //  [Authorize(Roles = "Admin")]
         [HttpPut("UpdateDoctorById/{id:int}")]
         public IActionResult UpdateDoctor(int id, [FromBody] DoctorDto updatedDoctor)
         {
@@ -62,7 +62,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpDelete("DeleteDoctorById/{id:int}")]
         public IActionResult DeleteDoctor(int id)
         {

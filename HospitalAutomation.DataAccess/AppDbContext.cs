@@ -17,8 +17,6 @@ namespace HospitalAutomation.DataAccess.Context
         }
 
         public DbSet<Patient> Patients { get; set; }
-        
-
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<Department> Departments { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
@@ -37,7 +35,14 @@ namespace HospitalAutomation.DataAccess.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // User <-> Patient birebir ilişki, aynı Id kullanılıyor
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Patient)
+                .WithOne(p => p.User)
+                .HasForeignKey<Patient>(p => p.Id); // Bu çok önemli!
         }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
         optionsBuilder.UseSqlServer("Data Source=FARUK;Initial Catalog=HospitalDatabase;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False");

@@ -32,14 +32,26 @@ namespace HospitalAutomation.API.Controllers
             return Ok(response);
         }
 
-        [Authorize(Roles = "Admin")]
+        [HttpGet("GetAllUsers")]
+        public IActionResult GetAllUsers()
+        {
+            var result = _userService.GetAllUsers();
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
+        //[Authorize(Roles = "Admin")]
         [HttpPost("UpdateUserRole")]
-        public IActionResult UpdateRole([FromQuery] string username, [FromQuery] string role)
+        public IActionResult UpdateRole([FromBody] UpdateUserRoleDto dto)
         {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(role))
-                return BadRequest("Kullanıcı adı ve rol boş olamaz.");
+            if (dto == null || dto.UserId <= 0 || string.IsNullOrWhiteSpace(dto.NewRole))
+                return BadRequest("Geçersiz parametreler.");
 
-            var response = _userService.UpdateUserRole(username, role);
+            var response = _userService.UpdateUserRole(dto);
 
             if (!response.IsSuccess)
                 return BadRequest(response.Message);
@@ -51,14 +63,13 @@ namespace HospitalAutomation.API.Controllers
 
 
 
-        [AllowAnonymous]
         [HttpPost("Register")]
-        public IActionResult Register([FromBody] UserRegisterDto user)
+        public IActionResult Register([FromBody] RegisterRequestDto request)
         {
-            if (user == null)
-                return BadRequest("Geçersiz kullanıcı verisi.");
+            if (request == null || request.User == null)
+                return BadRequest("Geçersiz kayıt verisi.");
 
-            var response = _userService.Register(user);
+            var response = _userService.Register(request.User, request.Patient);
 
             if (!response.IsSuccess)
                 return BadRequest(response.Message);
@@ -66,24 +77,29 @@ namespace HospitalAutomation.API.Controllers
             return Ok(response);
         }
 
-       
-        [Authorize(Roles = "Admin")]
+
+
+
+
+
+
+        // [Authorize(Roles = "Admin")]
         [HttpGet("admin-only")]
         public IActionResult AdminArea()
         {
             return Ok("Bu alan sadece admin kullanıcılar içindir.");
         }
 
-      
-        [Authorize(Roles = "Doctor")]
+
+        // [Authorize(Roles = "Doctor")]
         [HttpGet("doctor-area")]
         public IActionResult DoctorArea()
         {
             return Ok("Bu alan sadece doktorlar içindir.");
         }
 
-      
-        [Authorize(Roles = "Patient")]
+
+        //[Authorize(Roles = "Patient")]
         [HttpGet("patient-area")]
         public IActionResult PatientArea()
         {

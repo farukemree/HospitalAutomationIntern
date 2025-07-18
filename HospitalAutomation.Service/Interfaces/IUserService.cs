@@ -1,4 +1,5 @@
 ﻿using HospitalAutomation.DataAccess.DTOs;
+using HospitalAutomation.DataAccess.Models;
 using HospitalAutomation.Service.Response;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,9 @@ namespace HospitalAutomation.Service.Interfaces
    public interface IUserService
     {
         public ResponseGeneric<string> Login(UserLoginDto user);
-        public ResponseGeneric<bool> Register(UserRegisterDto user);
-        public ResponseGeneric<bool> UpdateUserRole(string username, string newRole);
+        public ResponseGeneric<bool> Register(UserRegisterDto userDto, PatientDto patientDto = null);
+        public ResponseGeneric<bool> UpdateUserRole(UpdateUserRoleDto dto);
+        ResponseGeneric<List<UserDto>> GetAllUsers();
+
     }
 }

@@ -8,7 +8,9 @@ using HospitalAutomation.Service.Response;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection.Metadata;
 using System.Security.Claims;
@@ -22,13 +24,41 @@ namespace HospitalAutomation.Service.Services
         private readonly IGenericRepository<User> _userRepository;
         private readonly IConfiguration _configuration;
         private readonly AppDbContext _context;
+        private readonly ILogger<UserService> _logger;
+        private readonly IPatientService _patientService;
 
-        public UserService(IGenericRepository<User> userRepository, IConfiguration configuration, AppDbContext context)
+        public UserService(IGenericRepository<User> userRepository, IConfiguration configuration, AppDbContext context, ILogger<UserService> logger, IPatientService patientService)
         {
             _userRepository = userRepository;
             _configuration = configuration;
             _context = context;
+            _logger = logger;
+            _patientService = patientService;
 
+        }
+        public ResponseGeneric<List<UserDto>> GetAllUsers()
+        {
+            try
+            {
+                var users = _context.Users.ToList();
+
+                if (!users.Any())
+                    return ResponseGeneric<List<UserDto>>.Error("Hiç kullanıcı bulunamadı.");
+
+                var userDtos = users.Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    Role = u.Role
+                }).ToList();
+
+                return ResponseGeneric<List<UserDto>>.Success(userDtos, "Kullanıcılar başarıyla getirildi.");
+            }
+            catch (Exception ex)
+            {
+                return ResponseGeneric<List<UserDto>>.Error("Veriler alınırken hata oluştu: " + ex.Message);
+            }
         }
 
 
@@ -42,27 +72,25 @@ namespace HospitalAutomation.Service.Services
 
             try
             {
-               
                 var usernameParam = new SqlParameter("@Username", user.Username);
 
-               
                 var existingUser = _context.Users
                     .FromSqlRaw("EXEC Pr_Get_User_By_Username @Username", usernameParam)
-                    .AsEnumerable() // EF Core'dan normal C# enumerable'a geçiş
+                    .AsEnumerable()
                     .FirstOrDefault();
 
-               
                 if (existingUser == null)
                     return ResponseGeneric<string>.Error("Kullanıcı adı veya şifre yanlış.");
 
-               
-                bool isPasswordValid = BCrypt.Net.BCrypt.Verify(user.Password, existingUser.Password);
-                if (!isPasswordValid)
+                
+                var hashedInputPassword = HashPassword(user.Password);
+
+                if (hashedInputPassword != existingUser.Password)
                     return ResponseGeneric<string>.Error("Kullanıcı adı veya şifre yanlış.");
 
-                var generatedToken = GenerateJwtToken(existingUser);
+                var token = GenerateJwtToken(existingUser);
 
-                return ResponseGeneric<string>.Success(generatedToken, "Giriş başarılı.");
+                return ResponseGeneric<string>.Success(token, "Giriş başarılı.");
             }
             catch (Exception ex)
             {
@@ -73,45 +101,69 @@ namespace HospitalAutomation.Service.Services
 
 
 
-        public ResponseGeneric<bool> Register(UserRegisterDto userDto)
+
+        public ResponseGeneric<bool> Register(UserRegisterDto userDto, PatientDto patientDto = null)
         {
+            using var transaction = _context.Database.BeginTransaction();
+
             try
             {
-               
                 var existingUser = _userRepository.Get(u => u.Username == userDto.Username);
                 if (existingUser != null)
-                {
                     return ResponseGeneric<bool>.Error("Bu kullanıcı adı zaten mevcut.");
-                }
 
-               
                 var hashedPassword = HashPassword(userDto.Password);
 
-               
-                var user = new User
+                // User ekleme sp çağrısı
+                var idParam = new SqlParameter
                 {
-                    Username = userDto.Username,
-                    Password = hashedPassword,
-                    Email = userDto.Email,
-                    Role = "Patient"
+                    ParameterName = "@Id",
+                    SqlDbType = System.Data.SqlDbType.Int,
+                    Direction = System.Data.ParameterDirection.Output
                 };
 
-
                 _context.Database.ExecuteSqlRaw(
-            "EXEC Pr_Create_User @Username, @Password, @Email, @Role",
-            new SqlParameter("@Username", user.Username),
-            new SqlParameter("@Password", user.Password),
-            new SqlParameter("@Email", user.Email),
-            new SqlParameter("@Role", user.Role)
-        );
+                    "EXEC Pr_Create_User @Id OUTPUT, @Username, @Password, @Email, @Role",
+                    idParam,
+                    new SqlParameter("@Username", userDto.Username),
+                    new SqlParameter("@Password", hashedPassword),
+                    new SqlParameter("@Email", userDto.Email),
+                    new SqlParameter("@Role", "Patient")
+                );
+
+                var userId = (int)idParam.Value;
+
+                if (patientDto != null)
+                {
+                    _context.Database.ExecuteSqlRaw(
+                        "EXEC Pr_Add_Patient @Id, @FullName, @BirthDate, @Gender, @AppointmentDate",
+                        new SqlParameter("@Id", userId),
+                        new SqlParameter("@FullName", patientDto.FullName),
+                        new SqlParameter("@BirthDate", patientDto.BirthDate),
+                        new SqlParameter("@Gender", patientDto.Gender ?? (object)DBNull.Value),
+                        new SqlParameter("@AppointmentDate", DBNull.Value) // Eğer varsa gerçek değer verilebilir
+                    );
+                }
+
+                transaction.Commit();
 
                 return ResponseGeneric<bool>.Success(true, "Kayıt başarılı.");
             }
             catch (Exception ex)
             {
+                transaction.Rollback();
                 return ResponseGeneric<bool>.Error("Kayıt sırasında hata oluştu: " + ex.Message);
             }
         }
+
+
+
+
+
+
+
+
+
 
 
         private string HashPassword(string password)
@@ -152,27 +204,32 @@ namespace HospitalAutomation.Service.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        public ResponseGeneric<bool> UpdateUserRole(string username, string role)
+        public ResponseGeneric<bool> UpdateUserRole(UpdateUserRoleDto dto)
         {
             try
             {
-                var sql = "EXEC Pr_Update_User_Role @Username, @Role";
+                var user = _userRepository.Get(u => u.Id == dto.UserId);
+                if (user == null)
+                    return ResponseGeneric<bool>.Error("Kullanıcı bulunamadı.");
 
-                var parameters = new[]
-                {
-            new SqlParameter("@Username", username),
-            new SqlParameter("@Role", role)
-        };
+                _context.Database.ExecuteSqlRaw(
+                    "EXEC Pr_Update_User_Role @UserId, @NewRole",
+                    new SqlParameter("@UserId", dto.UserId),
+                    new SqlParameter("@NewRole", dto.NewRole)
+                );
 
-                _context.Database.ExecuteSqlRaw(sql, parameters);
+                _logger.LogInformation("Rol değişikliği SP ile tamamlandı: {UserId} -> {NewRole}", dto.UserId, dto.NewRole);
 
-                return ResponseGeneric<bool>.Success(true, "Rol güncellendi.");
+                return ResponseGeneric<bool>.Success(true, "Kullanıcı rolü başarıyla güncellendi.");
             }
             catch (Exception ex)
             {
-                return ResponseGeneric<bool>.Error("Hata oluştu: " + ex.Message);
+                return ResponseGeneric<bool>.Error("Rol güncellenirken hata oluştu: " + ex.Message);
             }
         }
+
+
+
 
 
     }

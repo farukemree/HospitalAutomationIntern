@@ -18,7 +18,7 @@ namespace HospitalAutomation.API.Controllers
             _appointmentService = appointmentService;
         }
 
-        [Authorize(Roles = "Admin,Doctor")]
+        //[Authorize(Roles = "Admin,Doctor")]
         [HttpGet("GetAllAppointments")]
         public IActionResult GetAllAppointments()
         {
@@ -41,8 +41,21 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response); 
         }
+       
+        [HttpGet("GetAppointmentsByPatientId/{patientId}")]
+        public IActionResult GetAppointmentsByPatientId(int patientId)
+        {
+            var result = _appointmentService.GetAppointmentsByPatientId(patientId);
 
-        [Authorize(Roles = "Patient")]
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
+
+        //[Authorize(Roles = "Patient,Doctor")]
         [HttpPost("AddAppointment")]
         public IActionResult AddAppointment([FromBody] AppointmentDto appointmentDto)
         {
@@ -58,7 +71,7 @@ namespace HospitalAutomation.API.Controllers
         }
 
 
-        [Authorize(Roles = "Admin,Doctor")]
+        //[Authorize(Roles = "Admin,Doctor,Patient")]
         [HttpPut("UpdateAppointmentById/{id}")]
         public IActionResult UpdateAppointment(int id, [FromBody] AppointmentDto updatedAppointment)
         {
@@ -76,7 +89,7 @@ namespace HospitalAutomation.API.Controllers
             return Ok(result); 
         }
 
-        [AllowAnonymous]
+        //[AllowAnonymous]
         [HttpDelete("DeleteAppointmentById/{id}")]
         public IActionResult DeleteAppointment(int id)
         {

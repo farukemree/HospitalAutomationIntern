@@ -20,7 +20,7 @@ namespace HospitalAutomation.API.Controllers
             _departmentService = departmentService;
         }
 
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpGet("GetAllDepartments")]
         public IActionResult GetAllDepartments()
         {
@@ -31,7 +31,7 @@ namespace HospitalAutomation.API.Controllers
             return Ok(response);
         }
 
-        [Authorize(Roles = "Doctor,Admin")]
+        // [Authorize(Roles = "Doctor,Admin")]
         [HttpGet("GetDepartmentById/{id:int}")]
         public IActionResult GetDepartmentById(int id)
         {
@@ -44,7 +44,7 @@ namespace HospitalAutomation.API.Controllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpPost("AddDepartment")]
         public IActionResult AddDepartment([FromBody] DepartmentDto dto)
         {
@@ -58,7 +58,7 @@ namespace HospitalAutomation.API.Controllers
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
+        //  [Authorize(Roles = "Admin")]
         [HttpPut("UpdateDepartmentById{id:int}")]
         public IActionResult UpdateDepartment(int id, [FromBody] DepartmentDto dto)
         {
@@ -75,7 +75,7 @@ namespace HospitalAutomation.API.Controllers
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         [HttpDelete("DeleteDepartmentById{id:int}")]
         public IActionResult DeleteDepartment(int id)
         {

@@ -4,8 +4,8 @@ namespace HospitalAutomation.DataAccess.Models
 {
     public class User
     {
-        [Key] // PRIMARY KEY olarak tanımlar
-        public int Id { get; set; }  // <-- Bu olmazsa EF çalışmaz!
+        [Key]
+        public int Id { get; set; }
 
         [Required]
         public string Username { get; set; }
@@ -18,5 +18,10 @@ namespace HospitalAutomation.DataAccess.Models
 
         [Required]
         public string Role { get; set; }
+
+        // Navigasyon propery ama Id eşitliğine dayalı olacak
+        public virtual Patient Patient { get; set; }
+        public virtual Doctor Doctor { get; set; }
     }
+
 }

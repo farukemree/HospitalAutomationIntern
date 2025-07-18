@@ -16,6 +16,7 @@ namespace HospitalAutomation.DataAccess.DTOs
             public string Gender { get; set; }
 
         }
-    }
+    
+}
 
 

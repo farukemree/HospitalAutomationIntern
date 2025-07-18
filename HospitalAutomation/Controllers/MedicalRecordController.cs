@@ -17,21 +17,21 @@ namespace HospitalAutomation.API.Controllers
         {
             _medicalRecordService = medicalRecordService;
         }
-        [Authorize(Roles = "Admin")]
+        //  [Authorize(Roles = "Admin")]
         [HttpGet("GetAllMedicalRecords")]
         public IActionResult GetAllMedicalRecords()
         {
             var response = _medicalRecordService.GetAllMedicalRecords();
             return response.IsSuccess ? Ok(response) : NotFound(response);
         }
-        [Authorize(Roles = "Admin,Doctor")]
+        //   [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("GetMedicalRecordById/{id}")]
         public IActionResult GetMedicalRecordById(int id)
         {
             var response = _medicalRecordService.GetMedicalRecordById(id);
             return response.IsSuccess ? Ok(response) : NotFound(response);
         }
-        [Authorize(Roles = "Admin,Doctor")]
+        // [Authorize(Roles = "Admin,Doctor")]
         [HttpPost("AddMedicalRecord")]
         public IActionResult AddMedicalRecord([FromBody] MedicalRecordDto medicalRecordDto)
         {
@@ -42,7 +42,7 @@ namespace HospitalAutomation.API.Controllers
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
 
-        [Authorize(Roles = "Admin,Doctor")]
+        // [Authorize(Roles = "Admin,Doctor")]
         [HttpPut("UpdateMedicalRecordById/{id}")]
         public IActionResult UpdateMedicalRecord(int id, [FromBody] MedicalRecordDto updatedMedicalRecord)
         {
@@ -56,7 +56,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [Authorize(Roles = "Admin,Doctor")]
+        // [Authorize(Roles = "Admin,Doctor")]
         [HttpDelete("DeleteMedicalRecordById/{id}")]
         public IActionResult DeleteMedicalRecord(int id)
         {

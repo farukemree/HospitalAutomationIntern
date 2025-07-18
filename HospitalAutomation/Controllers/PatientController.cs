@@ -21,7 +21,7 @@ namespace HospitalAutomation.API.Controllers
         {
             _patientService = patientService;
         }
-        [Authorize(Roles = "Admin")]
+        // [Authorize(Roles = "Admin")]
         [HttpGet("GetAllPatients")]
         public IActionResult GetAllPatients()
         {
@@ -32,7 +32,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [Authorize(Roles = "Admin,Doctor")]
+        //   [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("GetPatientById/{id}")]
         public IActionResult GetPatientById(int id)
         {
@@ -43,7 +43,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [AllowAnonymous]
+        //   [AllowAnonymous]
         [HttpPost("AddPatient")]
         public IActionResult AddPatient([FromBody] Patient patient)
         {
@@ -58,7 +58,7 @@ namespace HospitalAutomation.API.Controllers
             // CreatedAtAction için DTO kullanabilirsin, burada örnek amaçlı direkt entity kullandım
             return CreatedAtAction(nameof(GetPatientById), new { id = patient.Id }, response);
         }
-        [Authorize(Roles = "Admin,Doctor")]
+        // [Authorize(Roles = "Admin,Doctor")]
         [HttpPut("UpdatePatientById/{id}")]
         public IActionResult UpdatePatient(int id, [FromBody] PatientDto updatedPatient)
         {
@@ -75,7 +75,7 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
-        [Authorize(Roles = "Admin,Doctor")]
+        //   [Authorize(Roles = "Admin,Doctor")]
         [HttpDelete("DeletePatientById/{id}")]
         public IActionResult DeletePatient(int id)
         {

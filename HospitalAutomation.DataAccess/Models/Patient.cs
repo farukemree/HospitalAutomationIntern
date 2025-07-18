@@ -10,18 +10,24 @@ namespace HospitalAutomation.DataAccess.Models
 
     public class Patient
     {
+        [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "İsim zorunludur")]
+        [Required]
         public string FullName { get; set; }
 
-        [Required(ErrorMessage = "Doğum tarihi zorunludur")]
+        [Required]
         public DateTime BirthDate { get; set; }
 
-        [Required(ErrorMessage = "Cinsiyet zorunludur")]
-        public string? Gender { get; set; }
+        [Required]
+        public string Gender { get; set; }
+
         public DateTime? AppointmentDate { get; set; }
+
+        // Bu satır önemli değil, sadece çift yönlü ilişki istiyorsan eklenebilir
+        public virtual User User { get; set; }
     }
+
 
 
 }

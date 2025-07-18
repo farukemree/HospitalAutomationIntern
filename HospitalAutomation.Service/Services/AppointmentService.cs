@@ -56,6 +56,42 @@ namespace HospitalAutomation.Service.Services
             }
         }
 
+        public ResponseGeneric<List<AppointmentDto>> GetAppointmentsByPatientId(int patientId)
+        {
+            try
+            {
+                var sql = "EXEC Pr_GetAppointmentsByPatientId @PatientId";
+                var param = new SqlParameter("@PatientId", patientId);
+
+                var appointments = _context.Appointments
+                    .FromSqlRaw(sql, param)
+                    .ToList();
+
+                if (!appointments.Any())
+                {
+                    _logger.LogWarning($"PatientId {patientId} için randevu bulunamadı.");
+                    return ResponseGeneric<List<AppointmentDto>>.Error("Randevu bulunamadı.");
+                }
+
+                var dtoList = appointments.Select(a => new AppointmentDto
+                {
+                    Id = a.Id,
+                    AppointmentDate = a.AppointmentDate,
+                    PatientId = a.PatientId,
+                    DoctorId = a.DoctorId,
+                    Description = a.Description
+                }).ToList();
+
+                _logger.LogInformation($"PatientId {patientId} için randevular başarıyla getirildi.");
+                return ResponseGeneric<List<AppointmentDto>>.Success(dtoList, "Randevular başarıyla getirildi.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Hasta randevuları getirilirken hata oluştu.");
+                return ResponseGeneric<List<AppointmentDto>>.Error("Veriler alınırken hata oluştu.");
+            }
+        }
+
 
         public ResponseGeneric<AppointmentDto> GetAppointmentById(int id)
         {

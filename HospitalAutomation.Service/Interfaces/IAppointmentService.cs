@@ -19,5 +19,7 @@ namespace HospitalAutomation.Service.Interfaces
         public ResponseGeneric<AppointmentDto> AddAppointment(AppointmentDto appointmentDto);
         public ResponseGeneric<string> UpdateAppointment(int id, AppointmentDto updatedAppointment);
         public ResponseBase DeleteAppointmentById(int id);
+        public ResponseGeneric<List<AppointmentDto>> GetAppointmentsByPatientId(int patientId);
+
     }
 }
