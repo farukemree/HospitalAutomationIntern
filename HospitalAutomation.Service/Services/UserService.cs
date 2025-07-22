@@ -89,6 +89,8 @@ namespace HospitalAutomation.Service.Services
                     return ResponseGeneric<string>.Error("Kullanıcı adı veya şifre yanlış.");
 
                 var token = GenerateJwtToken(existingUser);
+                EnsureUserRoleRecordsAsync(existingUser.Id, existingUser.Role);
+
 
                 return ResponseGeneric<string>.Success(token, "Giriş başarılı.");
             }
@@ -98,7 +100,29 @@ namespace HospitalAutomation.Service.Services
             }
         }
 
-
+        public async Task EnsureUserRoleRecordsAsync(int userId, string role)
+        {
+            if (role == "Patient")
+            {
+                var patientExists = await _context.Patients.AnyAsync(p => p.Id == userId);
+                if (!patientExists)
+                {
+                    var newPatient = new Patient { Id = userId };
+                    _context.Patients.Add(newPatient);
+                    await _context.SaveChangesAsync();
+                }
+            }
+            else if (role == "Doctor")
+            {
+                var doctorExists = await _context.Doctors.AnyAsync(d => d.Id == userId);
+                if (!doctorExists)
+                {
+                    var newDoctor = new Doctor { Id = userId };
+                    _context.Doctors.Add(newDoctor);
+                    await _context.SaveChangesAsync();
+                }
+            }
+        }
 
 
 

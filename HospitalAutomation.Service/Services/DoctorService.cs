@@ -43,7 +43,8 @@ namespace HospitalAutomation.Service.Services
                     FullName = d.FullName,
                     Specialization = d.Specialization,
                     Phone = d.Phone,
-                    DepartmentId = d.DepartmentId
+                    DepartmentId = d.DepartmentId,
+                    ImageFileKey = d.ImageFileKey
                 }).ToList();
 
                 _logger.LogInformation("Tüm doktorlar başarıyla getirildi.");
