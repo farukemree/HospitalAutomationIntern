@@ -1,11 +1,11 @@
-﻿using System;
+﻿    using HospitalAutomation.DataAccess.DTOs;
+using HospitalAutomation.DataAccess.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using HospitalAutomation.DataAccess.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace HospitalAutomation.DataAccess.Context
 {
@@ -22,8 +22,8 @@ namespace HospitalAutomation.DataAccess.Context
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<MedicalRecord> MedicalRecords { get; set; }
         public DbSet<User> Users { get; set; }
-
-
+        public DbSet<DoctorDto> DoctorDtos { get; set; }
+        public DbSet<UserImage> UserImages { get; set; }
 
 
         /*

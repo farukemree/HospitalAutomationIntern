@@ -80,7 +80,8 @@ namespace HospitalAutomation.Service.Services
                     FullName = doctor.FullName,
                     Specialization = doctor.Specialization,
                     Phone = doctor.Phone,
-                    DepartmentId = doctor.DepartmentId
+                    DepartmentId = doctor.DepartmentId,
+                    ImageFileKey = doctor.ImageFileKey
                 };
 
                 _logger.LogInformation("Doktor başarıyla getirildi. ID: {Id}", id);

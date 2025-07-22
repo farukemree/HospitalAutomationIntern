@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HospitalAutomation.DataAccess.Models
 {
@@ -22,6 +23,10 @@ namespace HospitalAutomation.DataAccess.Models
         // Navigasyon propery ama Id eşitliğine dayalı olacak
         public virtual Patient Patient { get; set; }
         public virtual Doctor Doctor { get; set; }
+
+        [Column("ImageFileKey")]
+        public string? FileKey { get; set; }  
+
     }
 
 }

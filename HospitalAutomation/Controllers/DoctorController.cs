@@ -1,7 +1,9 @@
-﻿using HospitalAutomation.DataAccess.DTOs;
+﻿using HospitalAutomation.DataAccess.Context;
+using HospitalAutomation.DataAccess.DTOs;
 using HospitalAutomation.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ResponseBase = HospitalAutomation.Service.Response.Response;
 
 namespace HospitalAutomation.API.Controllers
@@ -11,10 +13,12 @@ namespace HospitalAutomation.API.Controllers
     public class DoctorController : ControllerBase
     {
         private readonly IDoctorService _doctorService;
+        private readonly AppDbContext _context;
 
-        public DoctorController(IDoctorService doctorService)
+        public DoctorController(IDoctorService doctorService, AppDbContext context)
         {
             _doctorService = doctorService;
+            _context = context;
         }
         //  [Authorize(Roles = "Admin")]
         [HttpGet("GetAllDoctors")]
@@ -49,6 +53,8 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
+
+
         //  [Authorize(Roles = "Admin")]
         [HttpPut("UpdateDoctorById/{id:int}")]
         public IActionResult UpdateDoctor(int id, [FromBody] DoctorDto updatedDoctor)

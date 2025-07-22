@@ -21,6 +21,7 @@ namespace HospitalAutomation.DataAccess.Models
 
         public ICollection<Appointment> Appointments { get; set; }
         public virtual User User { get; set; }
+        public string? ImageFileKey { get; set; }
     }
 
 }
