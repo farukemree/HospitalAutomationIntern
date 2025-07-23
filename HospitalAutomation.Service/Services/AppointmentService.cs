@@ -129,6 +129,34 @@ namespace HospitalAutomation.Service.Services
                 return ResponseGeneric<AppointmentDto>.Error("Randevu getirilirken hata oluştu.");
             }
         }
+        public ResponseGeneric<List<AppointmentDto>> GetAppointmentsByDoctorId(int doctorId)
+        {
+            try
+            {
+                var param = new SqlParameter("@DoctorId", doctorId);
+                var appointments = _context.Appointments
+                    .FromSqlRaw("EXEC Pr_Get_Appointments_ByDoctorId @DoctorId", param)
+                    .ToList();
+
+                var appointmentDtos = appointments.Select(a => new AppointmentDto
+                {
+                    Id = a.Id,
+                    AppointmentDate = a.AppointmentDate,
+                    PatientId = a.PatientId,
+                    DoctorId = a.DoctorId,
+                    Description = a.Description
+                }).ToList();
+
+                return ResponseGeneric<List<AppointmentDto>>.Success(appointmentDtos, "Randevular başarıyla getirildi.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Randevular getirilirken hata oluştu.");
+                return ResponseGeneric<List<AppointmentDto>>.Error("Randevular getirilirken hata oluştu: " + ex.Message);
+            }
+        }
+
+
 
         public ResponseGeneric<AppointmentDto> AddAppointment(AppointmentDto dto)
         {

@@ -29,6 +29,21 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
+        [HttpGet("GetAppointmentsByDoctorId/{doctorId}")]
+        public IActionResult GetAppointmentsByDoctorId(int doctorId)
+        {
+            var response = _appointmentService.GetAppointmentsByDoctorId(doctorId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            else
+            {
+                return BadRequest(response);
+            }
+        }
+
+
 
         [AllowAnonymous]
         [HttpGet("GetAppointmentById/{id}")]

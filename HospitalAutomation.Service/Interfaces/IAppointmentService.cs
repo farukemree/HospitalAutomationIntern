@@ -21,5 +21,8 @@ namespace HospitalAutomation.Service.Interfaces
         public ResponseBase DeleteAppointmentById(int id);
         public ResponseGeneric<List<AppointmentDto>> GetAppointmentsByPatientId(int patientId);
 
+        ResponseGeneric<List<AppointmentDto>> GetAppointmentsByDoctorId(int doctorId);
+
+
     }
 }
