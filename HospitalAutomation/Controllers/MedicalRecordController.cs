@@ -24,6 +24,18 @@ namespace HospitalAutomation.API.Controllers
             var response = _medicalRecordService.GetAllMedicalRecords();
             return response.IsSuccess ? Ok(response) : NotFound(response);
         }
+
+        [HttpGet("GetMedicalRecordsByPatientId/{patientId}")]
+        public IActionResult GetMedicalRecordsByPatientId(int patientId)
+        {
+            var result = _medicalRecordService.GetMedicalRecordsByPatientId(patientId);
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
         //   [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("GetMedicalRecordById/{id}")]
         public IActionResult GetMedicalRecordById(int id)

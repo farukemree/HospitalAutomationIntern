@@ -12,7 +12,6 @@ namespace HospitalAutomation.DataAccess.Models
         public DateTime RecordDate { get; set; }
         public string Diagnosis { get; set; }
         public string Treatment { get; set; }
-
         public int PatientId { get; set; }
         public Patient Patient { get; set; }
     }

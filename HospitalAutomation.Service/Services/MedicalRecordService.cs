@@ -153,6 +153,41 @@ namespace HospitalAutomation.Service.Services
                 return ResponseBase.Error($"Tıbbi kayıt güncellenirken hata oluştu: {ex.Message}");
             }
         }
+        public ResponseGeneric<List<MedicalRecordDto>> GetMedicalRecordsByPatientId(int patientId)
+        {
+            try
+            {
+                var sql = "EXEC Pr_GetMedicalRecordsByPatientId @PatientId";
+                var param = new SqlParameter("@PatientId", patientId);
+
+                var medicalRecords = _context.MedicalRecords
+                    .FromSqlRaw(sql, param)
+                    .ToList();
+
+                if (!medicalRecords.Any())
+                {
+                    _logger.LogWarning($"PatientId {patientId} için tıbbi kayıt bulunamadı.");
+                    return ResponseGeneric<List<MedicalRecordDto>>.Success(new List<MedicalRecordDto>(), "Henüz tıbbi kayıt bulunmamaktadır.");
+                }
+
+                var dtoList = medicalRecords.Select(mr => new MedicalRecordDto
+                {
+                    Id = mr.Id,
+                    PatientId = mr.PatientId,
+                    RecordDate = mr.RecordDate,
+                    Description = $"Tanı: {mr.Diagnosis} | Tedavi: {mr.Treatment}"
+                }).ToList();
+
+                _logger.LogInformation($"PatientId {patientId} için tıbbi kayıtlar başarıyla getirildi.");
+                return ResponseGeneric<List<MedicalRecordDto>>.Success(dtoList, "Tıbbi kayıtlar başarıyla getirildi.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Hasta tıbbi kayıtları getirilirken hata oluştu.");
+                return ResponseGeneric<List<MedicalRecordDto>>.Error("Veriler alınırken hata oluştu.");
+            }
+        }
+
 
         public ResponseBase DeleteMedicalRecordById(int id)
         {

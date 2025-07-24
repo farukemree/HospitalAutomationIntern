@@ -22,5 +22,6 @@ namespace HospitalAutomation.Service.Interfaces
         ResponseBase AddMedicalRecord(MedicalRecordDto medicalRecordDto);
         ResponseBase UpdateMedicalRecord(int id, MedicalRecordDto updatedMedicalRecord);
         ResponseBase DeleteMedicalRecordById(int id);
+        public ResponseGeneric<List<MedicalRecordDto>> GetMedicalRecordsByPatientId(int patientId);
     }
 }

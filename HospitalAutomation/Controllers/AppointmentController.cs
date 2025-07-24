@@ -56,17 +56,30 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response); 
         }
-       
+
         [HttpGet("GetAppointmentsByPatientId/{patientId}")]
         public IActionResult GetAppointmentsByPatientId(int patientId)
         {
             var result = _appointmentService.GetAppointmentsByPatientId(patientId);
+
+            // Eğer randevu yoksa hata döndürme, başarı olarak dön ama data boş liste olsun
+            if (result.IsSuccess == false && result.Data == null)
+            {
+                // Randevu yok demek, bunu hata değil normal durum olarak kabul et
+                return Ok(new
+                {
+                    Data = new List<AppointmentDto>(),
+                    IsSuccess = true,
+                    Message = "Henüz randevunuz yok."
+                });
+            }
 
             if (!result.IsSuccess)
                 return BadRequest(result);
 
             return Ok(result);
         }
+
 
 
 
