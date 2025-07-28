@@ -35,6 +35,19 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(result);
         }
+        [HttpGet("SearchMedicalRecords")]
+        public async Task<IActionResult> SearchMedicalRecords([FromQuery] string keyword)
+        {
+            var result = _medicalRecordService.SearchMedicalRecordsByKeyword(keyword);
+
+            if (result.IsSuccess)
+                return Ok(result);
+
+            return BadRequest(result);
+        }
+
+
+
 
         //   [Authorize(Roles = "Admin,Doctor")]
         [HttpGet("GetMedicalRecordById/{id}")]

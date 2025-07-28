@@ -23,5 +23,6 @@ namespace HospitalAutomation.Service.Interfaces
         ResponseGeneric<DoctorDto> AddDoctor(DoctorDto doctorDto);
         ResponseGeneric<string> UpdateDoctor(int id, DoctorDto updatedDoctor);
         ResponseBase DeleteDoctorById(int id);
+        ResponseGeneric<List<DoctorDto>> GetDoctorsByDepartmentId(int departmentId);
     }
 }

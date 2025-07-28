@@ -1,9 +1,10 @@
-﻿using HospitalAutomation.DataAccess.DTOs;
-using HospitalAutomation.Service.Response;
-using System.Collections.Generic;
+﻿using Azure;
+using HospitalAutomation.DataAccess.DTOs;
 using HospitalAutomation.DataAccess.DTOs;
 using HospitalAutomation.Service.Response;
+using HospitalAutomation.Service.Response;
 using System;
+using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,5 +24,8 @@ namespace HospitalAutomation.Service.Interfaces
         ResponseBase UpdateMedicalRecord(int id, MedicalRecordDto updatedMedicalRecord);
         ResponseBase DeleteMedicalRecordById(int id);
         public ResponseGeneric<List<MedicalRecordDto>> GetMedicalRecordsByPatientId(int patientId);
+        public ResponseGeneric<List<MedicalRecordDto>> SearchMedicalRecordsByKeyword(string keyword);
+
     }
 }
+

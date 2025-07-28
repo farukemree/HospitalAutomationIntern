@@ -56,7 +56,42 @@ namespace HospitalAutomation.Service.Services
                 return ResponseGeneric<List<DoctorDto>>.Error("Veriler alınırken hata oluştu.");
             }
         }
+        public ResponseGeneric<List<DoctorDto>> GetDoctorsByDepartmentId(int departmentId)
+        {
+            try
+            {
+                var sql = "EXEC Pr_GetDoctorsByDepartmentId @DepartmentId";
+                var param = new SqlParameter("@DepartmentId", departmentId);
 
+                var doctors = _context.Doctors
+                    .FromSqlRaw(sql, param)
+                    .ToList();
+
+                if (!doctors.Any())
+                {
+                    _logger.LogWarning($"DepartmentId {departmentId} için doktor bulunamadı.");
+                    return ResponseGeneric<List<DoctorDto>>.Error("Doktor bulunamadı.");
+                }
+
+                var dtoList = doctors.Select(d => new DoctorDto
+                {
+                    Id = d.Id,
+                    FullName =d.FullName,
+                    Specialization = d.Specialization,
+                    Phone = d.Phone,
+                    DepartmentId = d.DepartmentId,
+                    ImageFileKey = d.ImageFileKey // varsa resim için
+                }).ToList();
+
+                _logger.LogInformation($"DepartmentId {departmentId} için doktorlar başarıyla getirildi.");
+                return ResponseGeneric<List<DoctorDto>>.Success(dtoList, "Doktorlar başarıyla getirildi.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Doktorlar getirilirken hata oluştu.");
+                return ResponseGeneric<List<DoctorDto>>.Error("Veriler alınırken hata oluştu.");
+            }
+        }
         public ResponseGeneric<DoctorDto> GetDoctorById(int id)
         {
             try

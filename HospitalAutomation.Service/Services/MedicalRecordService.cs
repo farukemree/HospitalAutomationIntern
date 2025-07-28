@@ -1,4 +1,5 @@
-﻿using HospitalAutomation.DataAccess.Context;
+﻿using Azure;
+using HospitalAutomation.DataAccess.Context;
 using HospitalAutomation.DataAccess.DTOs;
 using HospitalAutomation.DataAccess.Models;
 using HospitalAutomation.Service.Interfaces;
@@ -17,6 +18,7 @@ namespace HospitalAutomation.Service.Services
     {
         private readonly AppDbContext _context;
         private readonly ILogger<MedicalRecordService> _logger;
+        private object _mapper;
 
         public MedicalRecordService(AppDbContext context, ILogger<MedicalRecordService> logger)
         {
@@ -54,6 +56,43 @@ namespace HospitalAutomation.Service.Services
                 return ResponseGeneric<List<MedicalRecordDto>>.Error("Tıbbi kayıtlar getirilirken hata oluştu.");
             }
         }
+        public ResponseGeneric<List<MedicalRecordDto>> SearchMedicalRecordsByKeyword(string keyword)
+        {
+            try
+            {
+                var sql = "EXEC Pr_SearchMedicalRecordsByKeyword @Keyword";
+                var param = new SqlParameter("@Keyword", keyword ?? "");
+
+                var records = _context.MedicalRecords
+                    .FromSqlRaw(sql, param)
+                    .AsEnumerable()
+                    .ToList();
+
+                if (!records.Any())
+                {
+                    _logger.LogWarning($"Keyword '{keyword}' için tıbbi kayıt bulunamadı.");
+                    return ResponseGeneric<List<MedicalRecordDto>>.Error("Tıbbi kayıt bulunamadı.");
+                }
+
+                var dtoList = records.Select(record => new MedicalRecordDto
+                {
+                    Id = record.Id,
+                    PatientId = record.PatientId,
+                    RecordDate = record.RecordDate,
+                    Description = record.Diagnosis + (string.IsNullOrEmpty(record.Treatment) ? "" : " / " + record.Treatment)
+                }).ToList();
+
+                _logger.LogInformation($"Keyword '{keyword}' için tıbbi kayıtlar başarıyla getirildi.");
+                return ResponseGeneric<List<MedicalRecordDto>>.Success(dtoList, "Tıbbi kayıtlar başarıyla getirildi.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Keyword '{keyword}' ile tıbbi kayıtlar getirilirken hata oluştu.");
+                return ResponseGeneric<List<MedicalRecordDto>>.Error("Tıbbi kayıtlar getirilirken hata oluştu.");
+            }
+        }
+
+
 
         public ResponseGeneric<MedicalRecordDto> GetMedicalRecordById(int id)
         {

@@ -40,6 +40,16 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
+        [HttpGet("GetDoctorsByDepartmentId/{departmentId}")]
+        public IActionResult GetDoctorsByDepartmentId(int departmentId)
+        {
+            var result = _doctorService.GetDoctorsByDepartmentId(departmentId);
+            if (!result.IsSuccess)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
         // [Authorize(Roles = "Admin")]
         [HttpPost("AddDoctor")]
         public IActionResult AddDoctor([FromBody] DoctorDto doctorDto)

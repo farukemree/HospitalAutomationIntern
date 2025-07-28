@@ -59,7 +59,7 @@ namespace HospitalAutomation.API.Controllers
         }
 
         //  [Authorize(Roles = "Admin")]
-        [HttpPut("UpdateDepartmentById{id:int}")]
+        [HttpPut("UpdateDepartmentById/{id:int}")]
         public IActionResult UpdateDepartment(int id, [FromBody] DepartmentDto dto)
         {
             if (dto == null)
@@ -76,7 +76,7 @@ namespace HospitalAutomation.API.Controllers
         }
 
         //[Authorize(Roles = "Admin")]
-        [HttpDelete("DeleteDepartmentById{id:int}")]
+        [HttpDelete("DeleteDepartmentById/{id:int}")]
         public IActionResult DeleteDepartment(int id)
         {
             var result = _departmentService.DeleteDepartmentById(id);
