@@ -42,6 +42,17 @@ namespace HospitalAutomation.API.Controllers
 
             return Ok(response);
         }
+        [HttpGet("GetAllDepartmentsWithDescriptions")]
+        public async Task<IActionResult> GetAllDepartmentsWithDescriptions()
+        {
+            var result = await _departmentService.GetAllDepartmentsWithDescriptionsAsync();
+
+            if (!result.IsSuccess)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
 
 
         //[Authorize(Roles = "Admin")]

@@ -21,6 +21,7 @@ namespace HospitalAutomation.Service.Interfaces
         ResponseBase AddDepartment(DepartmentDto departmentDto);
         ResponseBase UpdateDepartment(int id, DepartmentDto updatedDepartment);
         ResponseBase DeleteDepartmentById(int id);
+        Task<ResponseGeneric<List<DepartmentDto>>> GetAllDepartmentsWithDescriptionsAsync();
     }
 }
 

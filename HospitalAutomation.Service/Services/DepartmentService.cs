@@ -9,16 +9,17 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using StackExchange.Redis;
 public class DepartmentService : IDepartmentService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<DepartmentService> _logger;
-
-    public DepartmentService(AppDbContext context, ILogger<DepartmentService> logger)
+    private readonly IRedisCacheService _cacheService;
+    public DepartmentService(AppDbContext context, ILogger<DepartmentService> logger, IRedisCacheService cacheService)
     {
         _context = context;
         _logger = logger;
+        _cacheService = cacheService;
     }
 
     public ResponseGeneric<List<DepartmentDto>> GetAllDepartments()
@@ -39,7 +40,7 @@ public class DepartmentService : IDepartmentService
             var dtos = departments.Select(d => new DepartmentDto
             {
                 Id = d.Id,
-                Name = d.Name
+                Name = d.Name,
             }).ToList();
 
             return ResponseGeneric<List<DepartmentDto>>.Success(dtos, "Bölümler başarıyla getirildi.");
@@ -50,6 +51,47 @@ public class DepartmentService : IDepartmentService
             return ResponseGeneric<List<DepartmentDto>>.Error("Bölümler getirilirken hata oluştu.");
         }
     }
+    public async Task<ResponseGeneric<List<DepartmentDto>>> GetAllDepartmentsWithDescriptionsAsync()
+    {
+        try
+        {
+            const string cacheKey = "departments_with_descriptions";
+
+            var cached = await _cacheService.GetAsync<List<DepartmentDto>>(cacheKey);
+            if (cached != null)
+            {
+                _logger.LogInformation("Departman verileri Redis'ten alındı.");
+                return ResponseGeneric<List<DepartmentDto>>.Success(cached, "Redis üzerinden getirildi.");
+            }
+
+            var sql = "EXEC GetAllDepartmentsWithDescriptions";
+            var departments = _context.Departments.FromSqlRaw(sql).ToList();
+
+            if (!departments.Any())
+            {
+                _logger.LogWarning("Hiç bölüm bulunamadı.");
+                return ResponseGeneric<List<DepartmentDto>>.Error("Hiç bölüm bulunamadı.");
+            }
+
+            var dtos = departments.Select(d => new DepartmentDto
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Description = d.Description
+            }).ToList();
+
+            await _cacheService.SetAsync(cacheKey, dtos, TimeSpan.FromHours(1));
+
+            return ResponseGeneric<List<DepartmentDto>>.Success(dtos, "Bölümler başarıyla getirildi.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bölümler getirilirken hata oluştu.");
+            return ResponseGeneric<List<DepartmentDto>>.Error("Bölümler getirilirken hata oluştu.");
+        }
+    }
+
+
 
     public ResponseGeneric<DepartmentDto> GetDepartmentById(int id)
     {
@@ -91,10 +133,14 @@ public class DepartmentService : IDepartmentService
             if (existing != null)
                 return Response.Error("Bu isimde bölüm zaten mevcut.");
 
-            var sql = "EXEC Pr_Add_Department @Name";
-            var param = new SqlParameter("@Name", dto.Name);
+            var sql = "EXEC Pr_Add_Department @Name, @Description";
+            var parameters = new[]
+            {
+            new SqlParameter("@Name", dto.Name),
+            new SqlParameter("@Description", (object?)dto.Description ?? DBNull.Value)
+        };
 
-            _context.Database.ExecuteSqlRaw(sql, param);
+            _context.Database.ExecuteSqlRaw(sql, parameters);
             _logger.LogInformation("Bölüm başarıyla eklendi: {Name}", dto.Name);
             return Response.Success("Bölüm başarıyla eklendi.");
         }
@@ -105,16 +151,18 @@ public class DepartmentService : IDepartmentService
         }
     }
 
+
     public Response UpdateDepartment(int id, DepartmentDto dto)
     {
         try
         {
-            var sql = "EXEC Pr_Update_Department @Id, @Name";
+            var sql = "EXEC Pr_Update_Department @Id, @Name, @Description";
             var parameters = new[]
             {
-                new SqlParameter("@Id", id),
-                new SqlParameter("@Name", dto.Name ?? (object)DBNull.Value)
-            };
+            new SqlParameter("@Id", id),
+            new SqlParameter("@Name", dto.Name ?? (object)DBNull.Value),
+            new SqlParameter("@Description", dto.Description ?? (object)DBNull.Value)
+        };
 
             int rows = _context.Database.ExecuteSqlRaw(sql, parameters);
             if (rows == 0)
@@ -131,6 +179,7 @@ public class DepartmentService : IDepartmentService
             return Response.Error("Bölüm güncellenirken hata oluştu.");
         }
     }
+
 
     public Response DeleteDepartmentById(int id)
     {
