@@ -24,6 +24,7 @@ namespace HospitalAutomation.DataAccess.Context
         public DbSet<User> Users { get; set; }
         public DbSet<DoctorDto> DoctorDtos { get; set; }
         public DbSet<UserImage> UserImages { get; set; }
+        public DbSet<ResetPassword> ResetPasswords { get; set; }
 
 
         /*
