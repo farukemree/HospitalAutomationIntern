@@ -51,6 +51,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUploadService, UploadService>();
 builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
 builder.Services.AddScoped<IResetPasswordService, ResetPasswordService>();
+builder.Services.AddScoped<IOnnxService, OnnxService>();
+
 
 builder.Services.AddHttpContextAccessor();
 
