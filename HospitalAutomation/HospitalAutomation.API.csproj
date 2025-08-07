@@ -15,6 +15,7 @@
 
 	<ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Confluent.Kafka" Version="2.11.0" />
     <PackageReference Include="FluentAssertions" Version="8.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.6" />
@@ -34,6 +35,7 @@
   </ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\HospitalAutomation.KafkaConsumer\HospitalAutomation.KafkaConsumer.csproj" />
 	  <ProjectReference Include="..\HospitalAutomation.Service\HospitalAutomation.Service.csproj" />
 	</ItemGroup>
 

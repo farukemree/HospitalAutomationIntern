@@ -49,10 +49,9 @@ builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<IMedicalRecordService, MedicalRecordService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUploadService, UploadService>();
-builder.Services.AddScoped<IRedisCacheService, RedisCacheService>();
+builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 builder.Services.AddScoped<IResetPasswordService, ResetPasswordService>();
-builder.Services.AddScoped<IOnnxService, OnnxService>();
-
+builder.Services.AddScoped<IOnnxService, OnnxService>(); 
 
 builder.Services.AddHttpContextAccessor();
 
@@ -67,6 +66,8 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
     var configuration = ConfigurationOptions.Parse("localhost:7001", true); // Docker'daki Redis portun
     return ConnectionMultiplexer.Connect(configuration);
 });
+builder.Services.AddHostedService<HospitalAutomation.KafkaConsumer.Services.KafkaConsumerService>();
+
 
 
 builder.Services.AddSwaggerGen(c =>
@@ -113,26 +114,18 @@ var app = builder.Build();
 app.UseStaticFiles();
 
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-app.MapControllers();
-app.UseAuthentication(); 
-app.UseAuthorization();
-
-app.UseCors("AllowFrontend");
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Hospital API V1");
-    c.RoutePrefix = "swagger";
+    c.RoutePrefix = "swagger"; // Swagger UI'ya /swagger yolundan eriþilir
 });
+app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors("AllowFrontend");
+app.UseAuthentication(); 
+app.UseAuthorization();
 
-
-
+app.MapControllers();
 
 app.Run();

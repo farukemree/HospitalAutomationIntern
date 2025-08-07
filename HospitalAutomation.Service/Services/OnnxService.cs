@@ -12,7 +12,6 @@ public class OnnxService : IOnnxService
 
     public OnnxService()
     {
-        // Model dosya yolu
         var modelPath = Path.Combine(Directory.GetCurrentDirectory(), "OnnxModel", "model.onnx");
 
         if (!File.Exists(modelPath))
@@ -20,7 +19,6 @@ public class OnnxService : IOnnxService
             throw new FileNotFoundException($"❌ ONNX modeli bulunamadı: {modelPath}");
         }
 
-        // Modeli yükle
         _session = new InferenceSession(modelPath);
     }
 
@@ -29,7 +27,6 @@ public class OnnxService : IOnnxService
         if (string.IsNullOrWhiteSpace(inputText))
             throw new ArgumentException("Giriş metni boş olamaz.");
 
-        // Giriş tensörü oluştur
         var inputTensor = new DenseTensor<string>(new[] { inputText }, new[] { 1, 1 });
 
         var inputs = new List<NamedOnnxValue>
