@@ -1,5 +1,6 @@
-﻿using HospitalAutomation.Service.Services;
+﻿using Azure.Core;
 using HospitalAutomation.Service.Interfaces;
+using HospitalAutomation.Service.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalAutomation.API.Controllers
@@ -18,20 +19,21 @@ namespace HospitalAutomation.API.Controllers
         [HttpPost("Predict")]
         public IActionResult Predict([FromBody] SymptomInputDto input)
         {
-            if (string.IsNullOrWhiteSpace(input.Symptoms))
-                return BadRequest("Belirtiler boş olamaz.");
+            try
+            {
+                var result = _onnxService.Predict(input.Symptoms);
 
-            var result = _onnxService.Predict(input.Symptoms);
-
-            if (string.IsNullOrWhiteSpace(result))
-                return StatusCode(500, "Modelden yanıt alınamadı.");
-
-            return Ok(new { PredictedDisease = result });
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
-    }
 
-    public class SymptomInputDto
-    {
-        public string Symptoms { get; set; }
+        public class SymptomInputDto
+        {
+            public string Symptoms { get; set; }
+        }
     }
 }

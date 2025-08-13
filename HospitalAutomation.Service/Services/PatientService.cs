@@ -55,6 +55,13 @@ namespace HospitalAutomation.Service.Services
             }
         }
 
+        public string GetPatientNameById(int patientId)
+        {
+            var patient = _context.Patients.FirstOrDefault(p => p.Id == patientId);
+            return patient?.FullName ?? "Bilinmeyen Hasta";
+        }
+
+
         public ResponseGeneric<PatientDto> GetPatientById(int id)
         {
             try

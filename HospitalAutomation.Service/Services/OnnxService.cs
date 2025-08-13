@@ -6,9 +6,24 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+public class PredictResponseDto
+{
+    public string PredictedDisease { get; set; }
+    public string Department { get; set; }
+}
+
 public class OnnxService : IOnnxService
 {
     private readonly InferenceSession _session;
+
+    // Hastalık - Bölüm eşlemesi (örnek)
+    private readonly Dictionary<string, string> _diseaseToDepartment = new Dictionary<string, string>
+    {
+        { "Covid-19", "Dahiliye" },
+        { "Grip", "Enfeksiyon" },
+        { "Migren", "Nöroloji" }
+        // diğer hastalıklar buraya eklenir
+    };
 
     public OnnxService()
     {
@@ -22,24 +37,30 @@ public class OnnxService : IOnnxService
         _session = new InferenceSession(modelPath);
     }
 
-    public string Predict(string inputText)
+    public PredictResponseDto Predict(string symptoms)
     {
-        if (string.IsNullOrWhiteSpace(inputText))
-            throw new ArgumentException("Giriş metni boş olamaz.");
+        var inputTensor = new DenseTensor<string>(new[] { symptoms }, new[] { 1, 1 });
 
-        var inputTensor = new DenseTensor<string>(new[] { inputText }, new[] { 1, 1 });
+        using var results = _session.Run(new List<NamedOnnxValue>
+    {
+        NamedOnnxValue.CreateFromTensor("input", inputTensor)
+    });
 
-        var inputs = new List<NamedOnnxValue>
+        var predictedDisease = results.First().AsEnumerable<string>().First();
+
+        var key = predictedDisease.Trim().ToLowerInvariant();
+
+        var department = _diseaseToDepartment
+            .Where(kv => kv.Key.ToLowerInvariant() == key)
+            .Select(kv => kv.Value)
+            .FirstOrDefault() ?? "Dahiliye";
+
+        return new PredictResponseDto
         {
-            NamedOnnxValue.CreateFromTensor("input", inputTensor)
+            PredictedDisease = predictedDisease,
+            Department = department
         };
-
-        // Modeli çalıştır
-        using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = _session.Run(inputs);
-
-        // Tahmin sonucunu al
-        var prediction = results.First().AsEnumerable<string>().First();
-
-        return prediction;
     }
+
+
 }

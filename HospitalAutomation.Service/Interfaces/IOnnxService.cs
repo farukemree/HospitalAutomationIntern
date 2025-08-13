@@ -8,7 +8,7 @@ namespace HospitalAutomation.Service.Interfaces
 {
     public interface IOnnxService
     {
-        string Predict(string inputText);
-    }
+        public PredictResponseDto Predict(string symptoms);
 
+    }
 }

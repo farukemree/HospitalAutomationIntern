@@ -1,8 +1,11 @@
-﻿using HospitalAutomation.DataAccess.DTOs;
+﻿using HospitalAutomation.API.Hubs;
+using HospitalAutomation.DataAccess.DTOs;
 using HospitalAutomation.Service.Interfaces;
+using HospitalAutomation.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using ResponseBase = HospitalAutomation.Service.Response.Response;
 
 namespace HospitalAutomation.API.Controllers
@@ -12,10 +15,14 @@ namespace HospitalAutomation.API.Controllers
     public class AppointmentController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
+        private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly IPatientService _patientService;   
 
-        public AppointmentController(IAppointmentService appointmentService)
+        public AppointmentController(IAppointmentService appointmentService, IHubContext<NotificationHub> hubContext, IPatientService patientService)
         {
             _appointmentService = appointmentService;
+            _hubContext = hubContext;
+            _patientService = patientService;
         }
 
         //[Authorize(Roles = "Admin,Doctor")]
@@ -95,8 +102,18 @@ namespace HospitalAutomation.API.Controllers
             if (!result.IsSuccess)
                 return BadRequest(result);
 
-            return Ok(result); 
+            // PatientId üzerinden hasta adını al
+            var patientName = _patientService.GetPatientNameById(appointmentDto.PatientId);
+
+            // 📌 Sadece ilgili doktora bildirim gönder
+            _hubContext.Clients
+                .Group(appointmentDto.DoctorId.ToString()) // DoctorId'ye özel grup
+                .SendAsync("ReceiveMessage", "Sistem", $"{patientName} adlı hasta size randevu aldı!");
+
+            return Ok(result);
         }
+
+
 
 
         //[Authorize(Roles = "Admin,Doctor,Patient")]

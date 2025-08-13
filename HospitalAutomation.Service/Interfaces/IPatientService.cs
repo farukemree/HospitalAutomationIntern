@@ -22,5 +22,7 @@ namespace HospitalAutomation.Service.Interfaces
         ResponseBase AddPatient(Patient patient);
         ResponseBase UpdatePatient(int id, PatientDto updatedPatient);
         ResponseBase DeletePatientById(int id);
+        string GetPatientNameById(int patientId);
+
     }
 }

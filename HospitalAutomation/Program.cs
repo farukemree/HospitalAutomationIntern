@@ -1,3 +1,4 @@
+using HospitalAutomation.API.Hubs;
 using HospitalAutomation.DataAccess.Context;
 using HospitalAutomation.DataAccess.Repositories;
 using HospitalAutomation.Service.Interfaces;
@@ -6,8 +7,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using System.Text;
 using StackExchange.Redis;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,13 +52,14 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUploadService, UploadService>();
 builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 builder.Services.AddScoped<IResetPasswordService, ResetPasswordService>();
-builder.Services.AddScoped<IOnnxService, OnnxService>(); 
+builder.Services.AddScoped<IOnnxService, OnnxService>();
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -103,7 +105,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -123,9 +126,10 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowFrontend");
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHub<NotificationHub>("/notificationHub");
 app.MapControllers();
 
 app.Run();
