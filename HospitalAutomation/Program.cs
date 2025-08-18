@@ -1,3 +1,4 @@
+﻿using HospitalAutomation.API.DataAccess.Mongo;
 using HospitalAutomation.API.Hubs;
 using HospitalAutomation.DataAccess.Context;
 using HospitalAutomation.DataAccess.Repositories;
@@ -39,7 +40,26 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
         NameClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
     };
+
+    // 🔑 SignalR hub için access token al
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+
+            // Eğer hub yolu ise token'ı kullan
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        }
+    };
 });
+
 
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -53,6 +73,8 @@ builder.Services.AddScoped<IUploadService, UploadService>();
 builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 builder.Services.AddScoped<IResetPasswordService, ResetPasswordService>();
 builder.Services.AddScoped<IOnnxService, OnnxService>();
+builder.Services.AddScoped<IChatService, ChatService>();
+builder.Services.AddSingleton<MongoDbContext>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -121,7 +143,7 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Hospital API V1");
-    c.RoutePrefix = "swagger"; // Swagger UI'ya /swagger yolundan eri�ilir
+    c.RoutePrefix = "swagger"; // Swagger UI'ya /swagger yolundan erişilir
 });
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -131,5 +153,6 @@ app.UseAuthorization();
 
 app.MapHub<NotificationHub>("/notificationHub");
 app.MapControllers();
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();
